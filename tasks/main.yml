@@ -102,6 +102,8 @@
   command: php occ db:add-missing-indices
   args: 
     chdir: "{{ nextcloud_webroot }}"
+  register: nc_indices_cmd
   become_user: "{{ nextcloud_websrv_user }}"
   become: yes
   become_flags: "{{ ansible_become_flags | default(omit) }}"
+  changed_when: '"Done" not in nc_indices_cmd.stdout'
