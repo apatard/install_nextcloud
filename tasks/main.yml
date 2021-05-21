@@ -81,15 +81,18 @@
     become: yes
     become_flags: "{{ ansible_become_flags | default(omit) }}"
     changed_when: false
+    check_mode: no
+    ignore_errors: "{{ ansible_check_mode }}"
     register: nc_apps_list
 
   - name: "[NC apps] - convert list to yaml."
-    set_fact: nc_available_apps="{{ nc_apps_list.stdout | from_json }}"
+    set_fact: nc_available_apps="{{ nc_apps_list.stdout | default("{}") | from_json }}"
 
   - name: "[NC apps] - installation."
     include_tasks: ./nc_apps.yml
     # do if the app is not enabled and ( (archive path is not "") or (app is disabled) )
     when:
+      - nc_available_apps | length > 0
       - item.key not in nc_available_apps.enabled
       - (item.value is not none) or (item.key in nc_available_apps.disabled)
     with_dict: "{{ nextcloud_apps }}"
